@@ -1,0 +1,127 @@
+
+services:
+    mysql:
+        image: mysql:8.0
+        # platform: linux/amd64
+        container_name: mysql
+        ports:
+            - "3306:3306"
+        volumes:
+            - "./mysql/data:/var/lib/mysql"
+            - "./logs/mysql:/var/log/mysql"
+            # - "./mysql/etc/mysql/conf.d:/etc/mysql/conf.d"
+        command:
+            [
+                'mysqld',
+                '--character-set-server=utf8mb4',
+                '--collation-server=utf8mb4_unicode_ci',
+                "--default-authentication-plugin=mysql_native_password"
+            ]
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MySQLRootPassword}
+        networks:
+            - mynetwork  # 使用共同的網絡
+    php71:
+        build:
+            context: ./php71-fpm
+            args:
+                TIMEZONE: ${Timezone}
+        container_name: php71
+        volumes:
+            - ${DocumentRoot}:/var/www/html
+        restart: unless-stopped
+        ports:
+            - 9000:9000
+        depends_on:
+            - mysql
+#        extra_hosts: 
+#            - 172.18.0.10
+        networks:
+            - mynetwork  # 使用共同的網絡
+    php81:
+        build:
+            context: ./php81-fpm
+            args:
+                TIMEZONE: ${Timezone}
+        container_name: php81
+        volumes:
+            - ${DocumentRoot}:/var/www/html
+        restart: unless-stopped
+        ports:
+            - 9003:9000
+        depends_on:
+            - mysql
+#        extra_hosts: 
+#            - 172.18.0.10
+        networks:
+            - mynetwork  # 使用共同的網絡
+    nginx:
+        build:
+            context: ./nginx
+        container_name: nginx
+        volumes:
+            - ${DocumentRoot}:/var/www/html
+            - ./logs/nginx:/var/log/nginx
+            - ./nginx/sites:/etc/nginx/sites-available
+            - ./nginx/sites-enabled:/etc/nginx/sites-enabled
+            - /etc/letsencrypt:/etc/letsencrypt:ro
+            # - ./nginx/conf.d:/etc/nginx/nginx.conf
+        ports:
+            - "80:80"
+            - "443:443"
+        restart: unless-stopped
+        dns:
+            - 8.8.8.8
+            - 1.1.1.1
+        depends_on:
+            - mysql
+        networks:
+            - mynetwork  # 使用共同的網絡
+    redis:
+        restart: always
+        image: redis
+        container_name: redis
+        command: redis-server --requirepass  123456
+        ports:
+            - 6379:6379
+        volumes:
+            - ./mysql/redis:/data
+        networks:
+            - mynetwork  # 使用共同的網絡
+    # mongodb:
+    #     image: mongo:4.4
+    #     container_name: mongo
+    #     environment:
+    #         - MONGO_INITDB_ROOT_USERNAME=root
+    #         - MONGO_INITDB_ROOT_PASSWORD=121410657
+    #     # command: mongod
+    #     ports:
+    #         - 27017:27017
+    #     volumes:
+    #         - ./mysql/mongo:/data
+    #     networks:
+    #         - mynetwork
+    
+    # n8n:
+    #     image: n8nio/n8n
+    #     container_name: n8n
+    #     restart: always
+    #     environment:
+    #         - N8N_BASIC_AUTH_ACTIVE=true
+    #         - N8N_BASIC_AUTH_USER=admin
+    #         - N8N_BASIC_AUTH_PASSWORD=123456
+    #         - N8N_HOST=n8n.abc.com
+    #         - WEBHOOK_URL=https://n8n.abc.com
+    #         - GENERIC_TIMEZONE=Asia/Taipei
+    #     volumes:
+    #         - n8n_data:/home/node/.n8n
+    #     expose:
+    #         - "5678"
+    #     networks:
+    #         - mynetwork  # 使用共同的網絡
+networks:
+    mynetwork:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.18.0.0/16
