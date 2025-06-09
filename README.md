@@ -67,7 +67,7 @@ sudo crontab -e
 ```bash
 0 3 * * * certbot renew --quiet --deploy-hook "docker restart nginx"
 ＃修改為
-0 3 * * * certbot renew --quiet --deploy-hook "docker restart nginx" >> /var/log/certbot_renew.log 2>&1
+0 3 * * * docker stop nginx && certbot renew --webroot -w /www/wwwroot/happy --quiet >> /var/log/certbot_renew.log 2>&1 && docker start nginx
 ```
 這條會每天凌晨 3:00 自動嘗試續約，成功後重啟 nginx。
 

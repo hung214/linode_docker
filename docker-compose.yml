@@ -10,6 +10,7 @@ services:
             - "./mysql/data:/var/lib/mysql"
             - "./logs/mysql:/var/log/mysql"
             # - "./mysql/etc/mysql/conf.d:/etc/mysql/conf.d"
+        restart: unless-stopped
         command:
             [
                 'mysqld',
@@ -81,7 +82,7 @@ services:
         restart: always
         image: redis
         container_name: redis
-        command: redis-server --requirepass  123456
+        command: redis-server --requirepass ${RedisPassword}
         ports:
             - 6379:6379
         volumes:
