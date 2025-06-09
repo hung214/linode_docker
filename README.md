@@ -80,10 +80,10 @@ certbot certificates
 ```
 它會列出所有憑證與剩餘天數，如：
 ```bash
-Certificate Name: ideambox.cc
-    Domains: ideambox.cc www.ideambox.cc
+Certificate Name: abc.com
+    Domains: abc.com www.abc.com
     Expiry Date: 2025-06-05 12:00:00+00:00 (VALID: 59 days)
-    Certificate Path: /etc/letsencrypt/live/ideambox.cc/fullchain.pem
+    Certificate Path: /etc/letsencrypt/live/abc.com/fullchain.pem
 ```
 ## 自動化建立站點包含ssl申請（linux環境有效）
 ```bash
